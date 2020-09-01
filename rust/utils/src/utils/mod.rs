@@ -1,6 +1,8 @@
-use ndarray::Array2;
+extern crate image;
+use ndarray::{Array, Array2, Ix2};
 use rand::prelude::*;
 use std::f64::consts::E;
+use std::path::Path;
 
 pub fn one_hot(labels: Array2<f64>, cols: usize) -> Array2<f64> {
     let rows = labels.shape()[0];
@@ -34,4 +36,12 @@ pub fn compute_loss(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
         .zip(labels.iter())
         .fold(0., |acc, (o, l)| acc + l * o.log(E))
         * average
+}
+
+// transform image to specific shape
+pub fn transform<P: AsRef<Path>>(path: P) -> Array2<f64> {
+    let img = image::open(path).unwrap().into_luma();
+    let pixels: Vec<f64> = img.into_iter().map(|x| *x as f64 / 255.).collect();
+
+    Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
 }

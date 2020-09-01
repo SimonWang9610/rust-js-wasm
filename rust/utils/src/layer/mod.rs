@@ -18,7 +18,7 @@ pub struct Layer {
 impl Layer {
     pub fn new(neurons: usize, prev: usize, end: bool, activation: Activation) -> Layer {
         // Activation has trait 'Copy`, so 'activation' will not be moved
-        let (weights, bias) = Layer::initial_parameter(neurons, prev as f64, activation);
+        let (weights, bias) = Layer::initial_parameter(neurons, prev as f64);
         Layer {
             neurons,
             prev,
@@ -53,7 +53,7 @@ impl Layer {
             Activation::Relu => (2. / prev).sqrt(),
             Activation::Tanh => (1. / prev).sqrt(),
         }; */
-        let weights = Array::random((neurons, prev as usize), StandardNormal) * 1.5;
+        let weights = Array::random((neurons, prev as usize), StandardNormal) * 0.5;
 
         // set zero as f64, otherwise default to isize
         let bias: Array2<f64> = Array::zeros((neurons, 1));

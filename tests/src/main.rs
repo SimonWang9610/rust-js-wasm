@@ -1,6 +1,8 @@
 use ndarray::{array, s, Array, Array2, Axis, Ix2};
 use ndarray_rand::rand_distr::{Distribution, Normal, Uniform};
 
+use image;
+use image::imageops::FilterType;
 use ndarray_rand::rand_distr::StandardNormal;
 use ndarray_rand::RandomExt;
 use std::cell::RefCell;
@@ -20,54 +22,39 @@ extern crate serde_json;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Deserializer, Value};
 
-fn main() {
-    let mut file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open("./parameters.json")
-        .unwrap();
-    let a: Array2<f64> = Array::from_shape_vec(Ix2(2, 3), vec![1., 2., 3., 4., 5., 6.]).unwrap();
-    let input_data = TestStruct {
-        data_int: 1,
-        data_str: "test".to_string(),
-        data_vector: vec![1, 2, 3],
-        data_ndarray: a.into_iter().map(|ele| *ele).collect::<Vec<f64>>(),
-    };
-    let input_json = input_data.to_json();
-    println!("input json {}", input_json);
+fn main() {}
 
-    let test_data = TestStruct {
-        data_int: 2,
-        data_str: "test2".to_string(),
-        data_vector: vec![1, 2, 3],
-        data_ndarray: vec![4., 5., 6.],
-    };
-    let test_json = test_data.to_json();
-    println!("test json {}", test_json);
+pub fn transform<P: AsRef<Path>>(path: P) -> Array2<f64> {
+    let img = image::open(path).unwrap().into_luma();
+    let pixels: Vec<f64> = img.into_iter().map(|x| *x as f64 / 255.).collect();
 
-    // file.write_all("{".as_bytes()).expect("failed");
-    file.write_all(test_json.to_string().as_bytes())
-        .expect("failed");
-    /* file.write_all(",".as_bytes()).expect("failed"); */
-
-    file.write_all(input_json.to_string().as_bytes())
-        .expect("failed");
-    // file.write_all("}".as_bytes()).expect("failed");
-
-    let mut data = String::new();
-    let mut file = File::open("./parameters.json").unwrap();
-    file.read_to_string(&mut data).unwrap();
-    println!("data {}", data);
-
-    let stream = Deserializer::from_str(&data).into_iter::<Value>();
-
-    for value in stream {
-        let test: TestStruct = serde_json::from_value(value.unwrap()).unwrap();
-        println!("test {}", test);
-    }
+    Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
 }
 
+// failed to read image as GrayScale image
+pub fn read_image<P: AsRef<Path>>(path: P) -> Array2<f64> {
+    let pixels = fs::read(path)
+        .unwrap()
+        .into_iter()
+        .map(|ele| ele as f64 / 255.)
+        .collect::<Vec<f64>>();
+    println!("pixels length {}", pixels.len() / 3);
+    Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn trans() {
+        let path: &Path = "./seven.png".as_ref();
+        /* let arr = transform(path);
+        assert_eq!(arr.shape(), &[1, 28 * 28]); */
+
+        let pixels = transform(path);
+        assert_eq!(pixels.shape(), &[1, 28 * 28]);
+    }
+}
 #[derive(Serialize, Deserialize)]
 pub struct TestStruct {
     data_int: u8,

@@ -1,9 +1,11 @@
-use ndarray::{s, Array2, Axis};
+use ndarray::{s, Array1, Array2, Axis};
+use serde_json::{Deserializer, Value};
 
 use crate::activation::Activation;
 use crate::layer::Layer;
 use crate::propagation::{backward, forward};
 use crate::trained::LayerJson;
+use crate::utils::transform;
 use crate::utils::{compute_loss, permutation};
 
 use std::cell::RefCell;
@@ -13,8 +15,21 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use std::time::Instant;
 
-use serde_json::{Deserializer, Value};
+macro_rules! timeit {
+    ($x:expr) => {{
+        let start = Instant::now();
+        let result = $x;
+        let end = start.elapsed();
+        println!(
+            "{}.{:03} sec",
+            end.as_secs(),
+            end.subsec_nanos() / 1_000_000
+        );
+        result
+    }};
+}
 
 pub struct Network {
     pub layers: RefCell<LinkedList<Layer>>,
@@ -46,8 +61,17 @@ impl Network {
         }
     }
 
-    pub fn predict(&self, input: Array2<f64>) -> Array2<f64> {
-        let mut output: Array2<f64> = input;
+    // return the probability
+    pub fn predict_array(&self, input: Array2<f64>) -> Array2<f64> {
+        let mut output: Array2<f64> = input.reversed_axes();
+        for layer in self.layers.borrow().iter() {
+            output = layer.forward(&output);
+        }
+        output
+    }
+
+    pub fn predict_image<P: AsRef<Path>>(&self, path: P) -> Array2<f64> {
+        let mut output: Array2<f64> = transform(path).reversed_axes();
         for layer in self.layers.borrow().iter() {
             output = layer.forward(&output);
         }
@@ -164,6 +188,45 @@ pub fn evaluate(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
                 }
             },
         )
+}
+
+pub fn train_network(
+    x_train: Array2<f64>,
+    y_train: Array2<f64>,
+    config: Vec<usize>,
+    epoches: usize,
+    batch_size: usize,
+    alpha: f64,
+) {
+    let network = Network::new(config, Activation::Relu, false, "./parameters.json");
+    let num_batches = (x_train.shape()[0] + batch_size - 1) / batch_size;
+
+    for epoch in 0..epoches {
+        println!("Training on Epoch #{}#", epoch);
+        timeit!({
+            let (loss, train_acc) =
+                network.batch(&x_train, &y_train, alpha, batch_size, num_batches);
+            println!(
+                "Epoch #{}#: Train-Acc {:.4}  Loss: {:.8}",
+                epoch, train_acc, loss
+            );
+        });
+    }
+    println!("saving model...");
+    network.save();
+    println!("model saved!");
+}
+
+pub fn classification(input: Array2<f64>) -> Array1<u8> {
+    input.map_axis(Axis(1), |row| {
+        let mut max = (0, 0.);
+        for (index, val) in row.iter().enumerate() {
+            if *val > max.1 {
+                max = (index, *val);
+            }
+        }
+        max.0 as u8
+    })
 }
 
 // pub fn create_network(parameters: Vec<usize>, activation: Activation) -> LinkedList<Layer> {

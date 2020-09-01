@@ -23,8 +23,8 @@ pub fn load_mnist<P: AsRef<Path>>(
     let x_test = as_arr(Ix2(num_image_test, 28 * 28), test_x).unwrap();
     let y_test = as_arr(Ix2(num_label_test, 1), test_y).unwrap();
     (
-        (x_train / 255., one_hot(y_train, 10)),
-        (x_test / 255., one_hot(y_test, 10)),
+        (x_train, one_hot(y_train, 10)),
+        (x_test, one_hot(y_test, 10)),
     )
 }
 
