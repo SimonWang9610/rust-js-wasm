@@ -1,6 +1,8 @@
 use ndarray::{Array2, Axis};
+use wasm_bindgen::prelude::*;
 
 // activation functions
+#[wasm_bindgen]
 #[derive(Debug, Copy, Clone)]
 pub enum Activation {
     Relu,

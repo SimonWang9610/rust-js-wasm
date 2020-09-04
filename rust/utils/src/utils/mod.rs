@@ -39,8 +39,8 @@ pub fn compute_loss(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
 }
 
 // transform image to specific shape
-pub fn transform<P: AsRef<Path>>(path: P) -> Array2<f64> {
-    let img = image::open(path).unwrap().into_luma();
+pub fn transform(path: &str) -> Array2<f64> {
+    let img = image::open(Path::new(path)).unwrap().into_luma();
     let pixels: Vec<f64> = img.into_iter().map(|x| *x as f64 / 255.).collect();
 
     Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()

@@ -1,3 +1,5 @@
+use wasm_bindgen::prelude::*;
+
 use crate::activation::{relu, softmax, tanh, Activation};
 use ndarray::{Array, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
@@ -5,6 +7,7 @@ use ndarray_rand::RandomExt;
 use std::cell::RefCell;
 use std::fmt::{self, Formatter};
 
+#[wasm_bindgen]
 #[derive(Debug)]
 pub struct Layer {
     pub neurons: usize, // numbers of neurons
@@ -15,6 +18,7 @@ pub struct Layer {
     pub activation: Activation,
 }
 
+#[wasm_bindgen]
 impl Layer {
     pub fn new(neurons: usize, prev: usize, end: bool, activation: Activation) -> Layer {
         // Activation has trait 'Copy`, so 'activation' will not be moved

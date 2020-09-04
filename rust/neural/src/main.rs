@@ -1,7 +1,8 @@
+extern crate network;
 extern crate utils;
 
+use network::{classification, evaluate, load_model, train_network};
 use utils::dataset::mnist::load_mnist;
-use utils::network::{classification, evaluate, load_model, train_network};
 use utils::utils::transform;
 
 use std::path::Path;
