@@ -7,8 +7,6 @@ use ndarray_rand::RandomExt;
 use std::cell::RefCell;
 use std::fmt::{self, Formatter};
 
-#[wasm_bindgen]
-#[derive(Debug)]
 pub struct Layer {
     pub neurons: usize, // numbers of neurons
     pub prev: usize,
@@ -18,7 +16,6 @@ pub struct Layer {
     pub activation: Activation,
 }
 
-#[wasm_bindgen]
 impl Layer {
     pub fn new(neurons: usize, prev: usize, end: bool, activation: Activation) -> Layer {
         // Activation has trait 'Copy`, so 'activation' will not be moved

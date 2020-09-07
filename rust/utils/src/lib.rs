@@ -1,7 +1,6 @@
 pub mod activation;
 pub mod dataset;
 pub mod layer;
-pub mod network;
 pub mod propagation;
 pub mod trained;
 pub mod utils;

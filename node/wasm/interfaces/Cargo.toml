@@ -1,0 +1,24 @@
+[package]
+name = "interfaces"
+version = "0.1.0"
+authors = ["SimonWang9610 <55259373+SimonWang9610@users.noreply.github.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"]}
+wasm-bindgen = {version = "0.2.67", features = ["serde-serialize"]}
+cfg-if = "0.1.10"
+js-sys = "0.3.44"
+ndarray = "0.13"
+wasm-bindgen-test = "0.3.17"
+rand = "0.7.3"
+image = "0.23.9"
+
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.17"
