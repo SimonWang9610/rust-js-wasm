@@ -1,5 +1,9 @@
+extern crate js_sys;
+extern crate wasm_bindgen;
+
 use ndarray::{array, s, Array, Array2, Axis, Ix2};
 use ndarray_rand::rand_distr::{Distribution, Normal, Uniform};
+use wasm_bindgen::prelude::*;
 
 use image;
 use image::imageops::FilterType;
@@ -8,8 +12,7 @@ use ndarray_rand::RandomExt;
 use std::cell::RefCell;
 use std::f64::consts::E;
 use std::fs::{self, File, OpenOptions};
-use std::io::Read;
-use std::io::Write;
+use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::rc::Rc;
 
@@ -25,8 +28,12 @@ use serde_json::{json, Deserializer, Value};
 fn main() {}
 
 pub fn transform<P: AsRef<Path>>(path: P) -> Array2<f64> {
-    let img = image::open(path).unwrap().into_luma();
+    let img = image::open(path)
+        .unwrap()
+        .thumbnail_exact(28, 28)
+        .into_luma();
     let pixels: Vec<f64> = img.into_iter().map(|x| *x as f64 / 255.).collect();
+    println!("pixels shape {:?}", pixels.len());
 
     Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
 }
@@ -42,17 +49,52 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Array2<f64> {
     Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
 }
 
+pub fn convert_input(input: js_sys::Array) -> Array2<f64> {
+    let samples = input.length() as usize;
+    let data = input
+        .iter()
+        .map(|ele| ele.as_f64().unwrap() / 255.)
+        .collect::<Vec<f64>>();
+    Array2::from_shape_vec((5, samples), data).unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn trans() {
-        let path: &Path = "./seven.png".as_ref();
+        let path: &Path = "./second_original.png".as_ref();
         /* let arr = transform(path);
         assert_eq!(arr.shape(), &[1, 28 * 28]); */
 
         let pixels = transform(path);
         assert_eq!(pixels.shape(), &[1, 28 * 28]);
+    }
+
+    #[test]
+    fn convert() {
+        let one_arr = js_sys::Array::new();
+        for i in 0..5 {
+            one_arr.push(&JsValue::from_f64(i as f64));
+        }
+
+        let image = one_arr
+            .values()
+            .map(|ele| ele.as_f64().unwrap() as u8)
+            .collect::<Vec<u8>>();
+        println!("image {:?}", image);
+
+        /* let two_arr = js_sys::Array::new();
+        for i in 0..5 {
+            two_arr.push(&JsValue::from_f64(i as f64));
+        }
+
+        let arr = js_sys::Array::new();
+        arr.push(one_arr);
+        arr.push(two_arr);
+
+        let output = convert_input(arr);
+        println!("output {}", output); */
     }
 }
 #[derive(Serialize, Deserialize)]

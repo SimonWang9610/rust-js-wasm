@@ -1,3 +1,5 @@
+use wasm_bindgen::prelude::*;
+
 use crate::activation::{relu, softmax, tanh, Activation};
 use ndarray::{Array, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
@@ -5,7 +7,6 @@ use ndarray_rand::RandomExt;
 use std::cell::RefCell;
 use std::fmt::{self, Formatter};
 
-#[derive(Debug)]
 pub struct Layer {
     pub neurons: usize, // numbers of neurons
     pub prev: usize,
