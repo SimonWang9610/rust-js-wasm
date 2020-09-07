@@ -19,10 +19,6 @@ impl ToString for Activation {
 }
 
 pub fn relu(input: Array2<f64>) -> Array2<f64> {
-    /* for ele in input.iter_mut() {
-        *ele = if *ele >= 0. { 1. } else { 0. };
-    }
-    input */
     input.mapv_into(|ele| if ele >= 0. { ele } else { 0. })
 }
 

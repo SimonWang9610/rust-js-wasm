@@ -46,12 +46,10 @@ cfg_if! {
     }
 }
 
-#[wasm_bindgen]
 pub struct Network {
     pub layers: RefCell<LinkedList<Layer>>,
 }
 
-#[wasm_bindgen]
 impl Network {
     pub fn new(config: Vec<usize>, activation: Activation, pre_trained: bool) -> Network {
         let mut layers: LinkedList<Layer> = LinkedList::new();
@@ -87,7 +85,6 @@ impl Network {
     }
 }
 
-#[wasm_bindgen]
 pub fn load_model(path: &str) -> Network {
     let mut layers: LinkedList<Layer> = LinkedList::new();
 
