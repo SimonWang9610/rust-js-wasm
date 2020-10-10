@@ -70,32 +70,6 @@ mod tests {
         let pixels = transform(path);
         assert_eq!(pixels.shape(), &[1, 28 * 28]);
     }
-
-    #[test]
-    fn convert() {
-        let one_arr = js_sys::Array::new();
-        for i in 0..5 {
-            one_arr.push(&JsValue::from_f64(i as f64));
-        }
-
-        let image = one_arr
-            .values()
-            .map(|ele| ele.as_f64().unwrap() as u8)
-            .collect::<Vec<u8>>();
-        println!("image {:?}", image);
-
-        /* let two_arr = js_sys::Array::new();
-        for i in 0..5 {
-            two_arr.push(&JsValue::from_f64(i as f64));
-        }
-
-        let arr = js_sys::Array::new();
-        arr.push(one_arr);
-        arr.push(two_arr);
-
-        let output = convert_input(arr);
-        println!("output {}", output); */
-    }
 }
 #[derive(Serialize, Deserialize)]
 pub struct TestStruct {
