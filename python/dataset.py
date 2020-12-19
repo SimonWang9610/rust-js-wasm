@@ -1,5 +1,5 @@
 from sklearn.datasets import fetch_openml
-from network import NeuralNetwork, train
+from network import NeuralNetwork, train, load
 from utils import one_hot
 from layer import Layer
  
@@ -7,12 +7,18 @@ mnist = fetch_openml('mnist_784', version=1)
 print('load dataset...')
 # [samples, _]
 images, labels = mnist['data'], mnist['target']
+images_test = images[60000:]
+print('loaded test data...')
+
+'''
+load pre-trained model
+'''
+# nn = load('./parameters.json')
+# result = nn.predict(images_test.T)
+# print(result)
 
 images_train = images[:60000,]
 labels_train = labels[:60000,].reshape(1, 60000)
-
-
-
  
 encoded_labels = one_hot(labels_train)
  

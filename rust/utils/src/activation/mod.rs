@@ -18,9 +18,7 @@ impl ToString for Activation {
     }
 }
 
-pub fn relu(input: Array2<f64>) -> Array2<f64> {
-    input.mapv_into(|ele| if ele >= 0. { ele } else { 0. })
-}
+
 
 pub fn tanh(input: Array2<f64>) -> Array2<f64> {
     input.mapv_into(|ele| {

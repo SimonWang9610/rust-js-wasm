@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+
+  <style>
+    div {
+      margin: 30px;
+    }
+  </style>
+  <body>
+    Pyodide test page <br>
+    Open your browser console to see pyodide output
+    <div>
+      <select id='inference-mode'>
+        <option value="1" selected='selected'>client-rust</option>
+        <option value="2">client-python</option>
+        <option value="3">server-rust</option>
+        <option value="4">server-python</option>
+      </select>
+    </div>
+<!--  -->
+    <div>
+        <input type='file' id='upload'>
+        <input type='button' id='input' value='Predict'>
+    </div>
+
+    <!-- <div> -->
+      <!-- <form id='user-form'> -->
+        <!-- <div> -->
+          <!-- <label for='inference-mode'>Choose inference mode:</label> -->
+          <!-- <select id='inference-mode' name='inference-mode'> -->
+            <!-- <option value="1" selected='selected'>client-rust</option> -->
+            <!-- <option value="2">client-python</option> -->
+            <!-- <option value="3">server-rust</option> -->
+            <!-- <option value="4">server-python</option> -->
+          <!-- </select> -->
+        <!-- </div> -->
+<!--  -->
+        <!-- <div> -->
+          <!-- <label for='upload'>please choose your image:</label> -->
+          <!-- <input type='file' id='upload' name='upload'> -->
+        <!-- </div> -->
+<!--  -->
+        <!-- <div> -->
+          <!-- <input type='submit' value='predict' id='predict'> -->
+        <!-- </div> -->
+      <!-- </form> -->
+    <!-- </div> -->
+    <script src='/tcp/jquery-3.5.1.js'></script>
+    <script src='/tcp/js/utils.js'></script>
+    <script src='/tcp/js/predict.js'></script>
+    <script src='/static/rust/wasm.js' type='module'></script>
+    </script>
+  </body>
+</html>

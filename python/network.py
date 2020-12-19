@@ -28,6 +28,7 @@ def train(network, alpha, epoches, images_train, labels_train):
         network.backward(alpha, labels_train)
         
         print(f'Epoch #{epoch}#: Loss: {loss}, Accuracy: {accuracy}')
+    network.save()
         
         
 class NeuralNetwork(object):

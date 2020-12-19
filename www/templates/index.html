@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{=it.Title}}</title>
+    </head>
+    <body>
+        <div id='model'>
+            load pre-trained model
+        </div>
+        <div id='inference'>
+            run inference task
+            <p>test</p>
+            <p>*****only for *.PNG and GrayScale Image***********</p>
+            <p>*****or Bytes file -> each image size: [28 * 28]</p>
+            <input type="file" id="upload"><br/>
+            <input type="button" id="layers" value="Predict">
+        </div>
+        <div>
+              <p>----------------------------------------------------</p>  
+        </div>
+        <div id="result">
+
+        </div>
+    </body>
+
+    <script src="/jquery-3.5.1.js"></script>
+    <!-- <script src="/static/interfaces.js"></script> -->
+    <!-- <script src="/static/interfaces_bg.js"></script> -->
+    <script src='/tcp/js/utils.js'></script>
+    <script src="/tcp/js/files.js"></script>
+    <script src="/tcp/js/wasm.js" type="module"></script>
+    <!-- <script src="/tcp/js/test.js" type="module"></script> -->
+
+
+</html>
