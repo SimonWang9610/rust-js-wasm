@@ -6,8 +6,7 @@ extern crate image;
 extern crate wasm_bindgen;
 
 pub mod utils;
-
-use utils::{classification, relu, softmax};
+use utils::{evaluate, relu, softmax, one_hot};
 
 use cfg_if::cfg_if;
 use js_sys::Array;
@@ -32,47 +31,74 @@ pub fn inference(params: JsValue, input: Vec<u8>, is_image: bool) -> Array {
     } else {
         convert_input(input)
     };
-    let output = network.forward(images);
-    let predictions = classification(output);
 
-    predictions
-        .into_iter()
-        .map(|ele| JsValue::from_f64(*ele))
-        .collect::<Array>()
+    let output = network.forward(images);
+    output.into_iter().map(|ele| JsValue::from_f64(*ele as f64)).collect::<Array>()
+    /* let converted_labels = convert_labels(labels);
+
+    let output = network.forward(images);
+    evaluate(&output, &converted_labels) / 10000. */
 }
 
-pub fn convert_image(input: Vec<u8>) -> Array2<f64> {
+// #[wasm_bindgen]
+// pub fn inference(params: JsValue, input: Vec<u8>, labels: Vec<u8>, is_image: bool) -> f32 {
+//     let network = Network::new(params);
+
+//     let images = if is_image {
+//         convert_image(input)
+//     } else {
+//         convert_input(input)
+//     };
+
+//     let converted_labels = convert_labels(labels);
+
+//     let output = network.forward(images);
+//     evaluate(&output, &converted_labels) / 10000.
+// }
+
+pub fn convert_image(input: Vec<u8>) -> Array2<f32> {
     let image = image::load_from_memory_with_format(&input, image::ImageFormat::Png)
         .unwrap()
         .thumbnail_exact(28, 28)
         .into_luma();
     let pixels = image
         .into_iter()
-        .map(|ele| *ele as f64 / 255.)
-        .collect::<Vec<f64>>();
-    Array2::from_shape_vec((784, 1), pixels).unwrap()
+        .map(|ele| *ele as f32 / 255.)
+        .collect::<Vec<f32>>();
+    Array2::from_shape_vec((1, 784), pixels).unwrap()
 }
 
-pub fn convert_input(input: Vec<u8>) -> Array2<f64> {
+pub fn convert_input(input: Vec<u8>) -> Array2<f32> {
     let pixels = input
         .into_iter()
         .skip(16)
-        .map(|ele| ele as f64 / 255.)
-        .collect::<Vec<f64>>();
-    Array2::from_shape_vec((784, 10000), pixels).unwrap()
+        .map(|ele| ele as f32 / 255.)
+        .collect::<Vec<f32>>();
+    Array2::from_shape_vec((10000, 784), pixels).unwrap()
 }
+
+pub fn convert_labels(labels: Vec<u8>) -> Array2<f32> {
+    let pixels = labels.into_iter().skip(8)
+        .map(|ele| ele as f32).collect::<Vec<f32>>();
+    
+    one_hot(
+        Array2::from_shape_vec((10000, 1), pixels).unwrap(),
+        10
+    )
+}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Layer {
     neurons: usize,
     prev: usize,
-    weights: Vec<f64>,
-    bias: Vec<f64>,
+    weights: Vec<f32>,
+    bias: Vec<f32>,
     end: bool,
 }
 
 impl Layer {
-    pub fn forward(&self, input: Array2<f64>) -> Array2<f64> {
+    pub fn forward(&self, input: Array2<f32>) -> Array2<f32> {
         let weights =
             Array2::from_shape_vec((self.neurons, self.prev), self.weights.clone()).unwrap();
         let bias = Array2::from_shape_vec((self.neurons, 1), self.bias.clone()).unwrap();
@@ -83,10 +109,6 @@ impl Layer {
         } else {
             relu(z)
         }
-    }
-
-    pub fn get_neurons(&self) -> f64 {
-        self.neurons as f64
     }
 }
 
@@ -100,11 +122,12 @@ impl Network {
         Network { layers }
     }
 
-    pub fn forward(&self, input: Array2<f64>) -> Array2<f64> {
-        let mut output = input;
+    pub fn forward(&self, input: Array2<f32>) -> Array2<f32> {
+        let mut output = input.clone().reversed_axes();
         for layer in self.layers.iter() {
             output = layer.forward(output);
         }
         output
     }
+
 }

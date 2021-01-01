@@ -68,16 +68,16 @@ impl Network {
     }
 
     // return the probability
-    pub fn predict_array(&self, input: Array2<f64>) -> Array2<f64> {
-        let mut output: Array2<f64> = input.reversed_axes();
+    pub fn predict_array(&self, input: &Array2<f32>) -> Array2<f32> {
+        let mut output: Array2<f32> = input.clone().reversed_axes();
         for layer in self.layers.borrow().iter() {
             output = layer.forward(&output);
         }
         output
     }
 
-    pub fn predict_image(&self, path: &str) -> Array2<f64> {
-        let mut output: Array2<f64> = transform(path).reversed_axes();
+    pub fn predict_image(&self, path: &str) -> Array2<f32> {
+        let mut output: Array2<f32> = transform(path).reversed_axes();
         for layer in self.layers.borrow().iter() {
             output = layer.forward(&output);
         }
@@ -106,7 +106,7 @@ pub fn load_model(path: &str) -> Network {
 }
 
 #[wasm_bindgen]
-pub fn classification(input: Vec<f64>) -> Vec<u8> {
+pub fn classification(input: Vec<f32>) -> Vec<u8> {
     let input = Array2::from_shape_vec((1, 10), input).unwrap();
     // return: Array1<u8> to Vec<u8>
     input
@@ -126,16 +126,18 @@ pub fn classification(input: Vec<f64>) -> Vec<u8> {
 // below not for wasm
 // /////////////////////
 impl Network {
+
+
     pub fn batch(
         &self,
-        data: &Array2<f64>,
-        target: &Array2<f64>,
-        alpha: f64,
+        data: &Array2<f32>,
+        target: &Array2<f32>,
+        alpha: f32,
         batch_size: usize,
         num_batches: usize,
-    ) -> (f64, f64) {
-        let mut correct: f64 = 0.;
-        let mut loss: f64 = 0.;
+    ) -> (f32, f32) {
+        let mut correct: f32 = 0.;
+        let mut loss: f32 = 0.;
         for i in permutation(num_batches) {
             let i = i as usize * batch_size;
             let x_batch = if (i + batch_size) > data.shape()[0] {
@@ -164,7 +166,7 @@ impl Network {
                 outputs,
             ); // y_batch [10, sample]
         }
-        (loss, correct / data.shape()[0] as f64)
+        (loss, correct / data.shape()[0] as f32)
     }
 
     pub fn save(&self, path: &str) {
@@ -183,7 +185,9 @@ impl Network {
 }
 
 // return the correct number
-pub fn evaluate(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
+pub fn evaluate(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
+    // labels [samples, 10]
+    
     let predictions = output.map_axis(Axis(1), |row| {
         let mut max = (0, 0.);
         for (i, ele) in row.iter().enumerate() {
@@ -191,7 +195,7 @@ pub fn evaluate(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
                 max = (i, *ele);
             }
         }
-        max.0 as f64
+        max.0 as f32
     });
 
     let labels = labels.map_axis(Axis(1), |row| {
@@ -201,7 +205,7 @@ pub fn evaluate(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
                 max = (i, *ele);
             }
         }
-        max.0 as f64
+        max.0 as f32
     });
 
     predictions
@@ -220,12 +224,14 @@ pub fn evaluate(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
 }
 
 pub fn train_network(
-    x_train: Array2<f64>,
-    y_train: Array2<f64>,
+    x_train: Array2<f32>,
+    y_train: Array2<f32>,
+    x_test: Array2<f32>,
+    y_test: Array2<f32>,
     config: Vec<usize>,
     epoches: usize,
     batch_size: usize,
-    alpha: f64,
+    alpha: f32,
 ) {
     let network = Network::new(config, Activation::Relu, false);
     let num_batches = (x_train.shape()[0] + batch_size - 1) / batch_size;
@@ -240,8 +246,17 @@ pub fn train_network(
                 epoch, train_acc, loss
             );
         });
+
+        let test_output = network.predict_array(&x_test);
+        let test_accuracy = evaluate(&test_output, &y_test) / test_output.shape()[0] as f32;
+        println!("Test-Acc: {:?}", test_accuracy);
     }
+
     println!("saving model...");
-    network.save("./parameters.json");
+    network.save("./parameters-32.json");
     println!("model saved!");
 }
+
+
+    
+

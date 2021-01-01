@@ -12,8 +12,8 @@ use std::cell::RefCell;
 pub struct LayerJson {
     neurons: usize,
     prev: usize,
-    weights: Vec<f64>,
-    bias: Vec<f64>,
+    weights: Vec<f32>,
+    bias: Vec<f32>,
     end: bool,
     activation: String,
 }
@@ -28,22 +28,22 @@ impl LayerJson {
                 .borrow()
                 .iter()
                 .map(|ele| *ele)
-                .collect::<Vec<f64>>(),
+                .collect::<Vec<f32>>(),
             bias: layer
                 .bias
                 .borrow()
                 .iter()
                 .map(|ele| *ele)
-                .collect::<Vec<f64>>(),
+                .collect::<Vec<f32>>(),
             end: layer.end,
             activation: layer.activation.to_string(),
         }
     }
 
     pub fn to_layer(self) -> Layer {
-        let weights: Array2<f64> =
+        let weights: Array2<f32> =
             Array::from_shape_vec(Ix2(self.neurons, self.prev), self.weights).unwrap();
-        let bias: Array2<f64> = Array::from_shape_vec(Ix2(self.neurons, 1), self.bias).unwrap();
+        let bias: Array2<f32> = Array::from_shape_vec(Ix2(self.neurons, 1), self.bias).unwrap();
         let activation: Activation = if self.activation == "relu" {
             Activation::Relu
         } else {

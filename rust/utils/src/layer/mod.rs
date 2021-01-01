@@ -10,8 +10,8 @@ use std::fmt::{self, Formatter};
 pub struct Layer {
     pub neurons: usize, // numbers of neurons
     pub prev: usize,
-    pub weights: RefCell<ndarray::Array2<f64>>,
-    pub bias: RefCell<ndarray::Array2<f64>>,
+    pub weights: RefCell<ndarray::Array2<f32>>,
+    pub bias: RefCell<ndarray::Array2<f32>>,
     pub end: bool,
     pub activation: Activation,
 }
@@ -19,7 +19,7 @@ pub struct Layer {
 impl Layer {
     pub fn new(neurons: usize, prev: usize, end: bool, activation: Activation) -> Layer {
         // Activation has trait 'Copy`, so 'activation' will not be moved
-        let (weights, bias) = Layer::initial_parameter(neurons, prev as f64);
+        let (weights, bias) = Layer::initial_parameter(neurons, prev as f32);
         Layer {
             neurons,
             prev,
@@ -30,7 +30,7 @@ impl Layer {
         }
     }
 
-    pub fn forward(&self, input: &Array2<f64>) -> Array2<f64> {
+    pub fn forward(&self, input: &Array2<f32>) -> Array2<f32> {
         assert_eq!(self.weights.borrow().shape()[1], input.shape()[0]);
         let z = self.weights.borrow().dot(input) + &*self.bias.borrow();
         if self.end {
@@ -48,16 +48,16 @@ impl Layer {
 impl Layer {
     fn initial_parameter(
         neurons: usize,
-        prev: f64,
-    ) -> (RefCell<ndarray::Array2<f64>>, RefCell<ndarray::Array2<f64>>) {
+        prev: f32,
+    ) -> (RefCell<ndarray::Array2<f32>>, RefCell<ndarray::Array2<f32>>) {
         /* let scale = match activation {
             Activation::Relu => (2. / prev).sqrt(),
             Activation::Tanh => (1. / prev).sqrt(),
         }; */
-        let weights = Array::random((neurons, prev as usize), StandardNormal) * 0.5;
+        let weights = Array::random((neurons, prev as usize), StandardNormal) * 0.05;
 
-        // set zero as f64, otherwise default to isize
-        let bias: Array2<f64> = Array::zeros((neurons, 1));
+        // set zero as f32, otherwise default to isize
+        let bias: Array2<f32> = Array::zeros((neurons, 1));
         (RefCell::new(weights), RefCell::new(bias))
     }
 }
