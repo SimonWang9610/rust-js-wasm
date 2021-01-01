@@ -4,13 +4,16 @@ import init, { inference } from '/static/interfaces.js';
 async function initNetwork() {
 	// let images = getImages();
 	let params = getParams();
+	let imageArray = getImageArray(imageReader);
+    console.log('🚀 ~ file: wasm.js ~ line 9 ~ initNetwork ~ imageArray', imageArray)
 
-	let imageArray = getImageArray();
-	console.log('isImage ' + isImage);
+	let labels = getImageArray(labelReader);
+    console.log('🚀 ~ file: wasm.js ~ line 12 ~ initNetwork ~ labels', labels)
+	
 	await init();
 
 	let result = inference(params, imageArray, isImage);
-	console.log('initNetwork -> result', result);
+	console.log("result " + result);
 }
 
 function getParams() {
@@ -28,4 +31,5 @@ $('#layers').bind('click', function(e) {
 	e.preventDefault();
 	e.stopPropagation();
 	initNetwork();
+	
 });

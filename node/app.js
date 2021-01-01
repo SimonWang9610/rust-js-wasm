@@ -1,8 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
-const session = require('express-session');
 const dot = require('dot');
 const fs = require('fs');
 

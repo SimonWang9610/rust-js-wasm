@@ -1,16 +1,16 @@
 extern crate image;
 use ndarray::{Array, Array2, Ix2};
 use rand::prelude::*;
-use std::f64::consts::E;
+use std::f32::consts::E;
 use std::path::Path;
 
-pub fn one_hot(labels: Array2<f64>, cols: usize) -> Array2<f64> {
+pub fn one_hot(labels: Array2<f32>, cols: usize) -> Array2<f32> {
     let rows = labels.shape()[0];
     let mut data = vec![];
     for item in labels.into_iter() {
         let mut row = Vec::with_capacity(cols);
         for index in 0..cols {
-            if index as f64 == *item {
+            if index as f32 == *item {
                 row.push(1.);
             } else {
                 row.push(0.);
@@ -27,10 +27,10 @@ pub fn permutation(size: usize) -> Vec<usize> {
     perm
 }
 
-pub fn compute_loss(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
+pub fn compute_loss(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
     // output [sample, 10]
     // labels [sample, 10]
-    let average = -1. / labels.shape()[0] as f64;
+    let average = -1. / labels.shape()[0] as f32;
     output
         .into_iter()
         .zip(labels.iter())
@@ -39,9 +39,9 @@ pub fn compute_loss(output: &Array2<f64>, labels: &Array2<f64>) -> f64 {
 }
 
 // transform image to specific shape
-pub fn transform(path: &str) -> Array2<f64> {
+pub fn transform(path: &str) -> Array2<f32> {
     let img = image::open(Path::new(path)).unwrap().into_luma();
-    let pixels: Vec<f64> = img.into_iter().map(|x| *x as f64 / 255.).collect();
+    let pixels: Vec<f32> = img.into_iter().map(|x| *x as f32 / 255.).collect();
 
     Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
 }

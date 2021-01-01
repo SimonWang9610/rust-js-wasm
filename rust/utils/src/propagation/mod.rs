@@ -4,7 +4,7 @@ use ndarray::{Array, Array2, Axis};
 use std::cell::{Ref, RefMut};
 use std::collections::LinkedList;
 
-pub fn forward(network: Ref<LinkedList<Layer>>, data: Array2<f64>) -> Vec<Array2<f64>> {
+pub fn forward(network: Ref<LinkedList<Layer>>, data: Array2<f32>) -> Vec<Array2<f32>> {
     let mut outputs = vec![data.clone()];
     for layer in network.iter() {
         let output = layer.forward(outputs.iter().last().unwrap());
@@ -16,18 +16,18 @@ pub fn forward(network: Ref<LinkedList<Layer>>, data: Array2<f64>) -> Vec<Array2
 
 pub fn backward(
     mut network: RefMut<LinkedList<Layer>>,
-    target: &Array2<f64>,
-    alpha: f64,
-    outputs: Vec<Array2<f64>>,
+    target: &Array2<f32>,
+    alpha: f32,
+    outputs: Vec<Array2<f32>>,
 ) {
     // enable the outputs as peekable so as to access two continuous elements [current, next]
     let mut outputs_iter = outputs.into_iter().rev().peekable();
 
     // the shape of derivate will change during back-propagation
     // therefore use Box<T> to wrap the matrix with dynamic size
-    let mut derivate_z: Box<Array2<f64>> = Box::new(Array::zeros((1, 1)));
-    let mut weights: Box<Array2<f64>> = Box::new(network.back().unwrap().weights.borrow().clone());
-    let mut derivate_w: Box<Array2<f64>>;
+    let mut derivate_z: Box<Array2<f32>> = Box::new(Array::zeros((1, 1)));
+    let mut weights: Box<Array2<f32>> = Box::new(network.back().unwrap().weights.borrow().clone());
+    let mut derivate_w: Box<Array2<f32>>;
 
     // the network LinkListed must be reversed during back-propagation
     for layer in network.iter_mut().rev() {
@@ -43,7 +43,7 @@ pub fn backward(
 
         let mut input = outputs_iter.peek().unwrap().clone();
         derivate_z = if layer.end {
-            let sample = target.shape()[1] as f64; // sample
+            let sample = target.shape()[1] as f32; // sample
             Box::new((output.reversed_axes() - target) / sample) // [10, sample] - [10, sample]
         } else {
             // reversed_axes(self) consumes the variable
@@ -70,13 +70,13 @@ pub fn backward(
 
 fn optimize(
     layer: &mut Layer,
-    derivate_z: &Array2<f64>,
-    derivate_w: &Array2<f64>,
-    alpha: f64,
-    input: Array2<f64>,
+    derivate_z: &Array2<f32>,
+    derivate_w: &Array2<f32>,
+    alpha: f32,
+    input: Array2<f32>,
 ) {
     let cloned_weights = layer.weights.borrow().clone();
-    *layer.weights.borrow_mut() = cloned_weights - alpha * derivate_w / input.shape()[1] as f64;
+    *layer.weights.borrow_mut() = cloned_weights - alpha * derivate_w / input.shape()[1] as f32;
 
     let cloned_bias = layer.bias.borrow().clone();
     *layer.bias.borrow_mut() = cloned_bias
@@ -85,5 +85,5 @@ fn optimize(
                 .sum_axis(Axis(1))
                 .into_shape((layer.neurons, 1))
                 .unwrap()
-            / input.shape()[0] as f64;
+            / input.shape()[0] as f32;
 }

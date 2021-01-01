@@ -8,22 +8,27 @@ use utils::utils::transform;
 use std::path::Path;
 
 fn main() {
-    /* let paths: Vec<&Path> = vec![
+    let paths: Vec<&Path> = vec![
         "./mnist/train-images.idx3-ubyte".as_ref(),
         "./mnist/train-labels.idx1-ubyte".as_ref(),
         "./mnist/t10k-images.idx3-ubyte".as_ref(),
         "./mnist/t10k-labels.idx1-ubyte".as_ref(),
     ];
-    let config: Vec<usize> = vec![784, 200, 50, 10];
+    let config: Vec<usize> = vec![784, 500, 350, 200, 100, 50, 10];
     let ((x_train, y_train), (x_test, y_test)) = load_mnist(paths); // [sample, 784] [sample, 10]
+    println!("Data loading...");
+    train_network(x_train, y_train, x_test, y_test, config, 100, 128, 1.25);
 
-    train_network(x_train, y_train, config, 100, 128, 1.); */
+    // let trained_network = load_model("./parameters-32.json");
 
-    let trained_network = load_model("./parameters.json");
+    /* let test_output = trained_network.predict_array(&x_test);
 
-    // let img = transform("./seven.png"); // [1, shape]
-    let predict = trained_network.predict_image("./seven.png");
-    println!("predict  {}", classification(predict));
+    let acc = evaluate(&test_output, &y_test) / 10000.;
+    println!(" Test-Acc: {:?}", acc); */
+
+
+    /* let predict = trained_network.predict_image("./seven.png");
+    println!("predict {:?}", predict); */
 
     /* let predictions = trained_network.predict(x_test.reversed_axes());
     let test_correct = evaluate(&predictions, &y_test);

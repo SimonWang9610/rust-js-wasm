@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <!-- <script type="text/javascript"> -->
+          <!-- // set the pyodide files URL (packages.json, pyodide.asm.data etc) -->
+          <!-- window.languagePluginUrl = 'https://pyodide-cdn2.iodide.io/v0.15.0/full/'; -->
+      <!-- </script> -->
+      <script src="./pyodide.js"></script>
+  </head>
+  <body>
+    Pyodide test page <br>
+    Open your browser console to see pyodide output
+    <div>
+      <select id='inference-mode'>
+        <option value="1" selected='selected'>client-rust</option>
+        <option value="2">client-python</option>
+        <option value="3">server-rust</option>
+        <option value="4">server-python</option>
+      </select>
+    </div>
+
+    <div>
+        <input type='file' id='upload'>
+        <input type='button' id='input' value='Predict'>
+    </div>
+    <script src='./jquery-3.5.1.js'></script>
+    <script src='./js/utils.js'></script>
+
+    <script src='./js/predict.js'></script>
+
+    <script src='./js/python.js'></script>
+    </script>
+  </body>
+</html>
