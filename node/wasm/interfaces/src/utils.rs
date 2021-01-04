@@ -83,3 +83,11 @@ pub fn one_hot(labels: Array2<f32>, cols: usize) -> Array2<f32> {
     }
     Array2::from_shape_vec((rows, cols), data).unwrap()
 }
+
+pub fn dequantize(weights: Vec<u8>, neurons: usize, prev: usize, zero: f32, factor: f32) -> Array2<f32> {
+    let weights_float: Vec<f32> = weights.iter().map(|ele| {
+        (*ele as f32 - zero) * factor
+    }).collect();
+
+    Array2::from_shape_vec((neurons, prev), weights_float).unwrap()
+}
