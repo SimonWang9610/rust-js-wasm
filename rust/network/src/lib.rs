@@ -2,18 +2,21 @@ extern crate cfg_if;
 extern crate utils;
 extern crate wasm_bindgen;
 
+
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
 
 use ndarray::{s, Array1, Array2, Axis};
 use serde_json::{Deserializer, Value};
 
+use utils::ConvertT;
 use utils::activation::Activation;
 use utils::layer::Layer;
 use utils::propagation::{backward, forward};
 use utils::trained::LayerJson;
 use utils::utils::transform;
 use utils::utils::{compute_loss, permutation};
+use utils::quantization::QuantizedLayer;
 
 use std::cell::RefCell;
 use std::collections::LinkedList;
@@ -85,7 +88,7 @@ impl Network {
     }
 }
 
-pub fn load_model(path: &str) -> Network {
+pub fn load_model(path: &str, quantized: bool) -> Network {
     let mut layers: LinkedList<Layer> = LinkedList::new();
 
     let mut data = String::new();
@@ -95,8 +98,15 @@ pub fn load_model(path: &str) -> Network {
     let stream = Deserializer::from_str(&data).into_iter::<Value>();
 
     for value in stream {
-        let layer_json: LayerJson = serde_json::from_value(value.unwrap()).unwrap();
-        let layer = layer_json.to_layer();
+        
+        let layer = if quantized {
+            let layer_json: QuantizedLayer = serde_json::from_value(value.unwrap()).unwrap();
+            layer_json.to_layer()
+        } else {
+            let layer_json: LayerJson = serde_json::from_value(value.unwrap()).unwrap();
+            layer_json.to_layer()
+        };
+
         layers.push_back(layer);
     }
 
@@ -169,17 +179,26 @@ impl Network {
         (loss, correct / data.shape()[0] as f32)
     }
 
-    pub fn save(&self, path: &str) {
+    pub fn save(&self, path: &str, quantized: bool) {
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
             .create(true)
             .open(Path::new(path))
             .unwrap();
+
         for layer in self.layers.borrow().iter() {
-            let layer_json = LayerJson::new(layer);
-            file.write_all(&layer_json.to_json().to_string().as_bytes())
+
+            if quantized {
+                let layer_json = QuantizedLayer::new(layer);
+                file.write_all(&layer_json.to_json().to_string().as_bytes())
                 .expect("Failed to save layer");
+            } else {
+                let layer_json = LayerJson::new(layer);
+                file.write_all(&layer_json.to_json().to_string().as_bytes())
+                .expect("Failed to save layer");
+            };
+
         }
     }
 }
@@ -253,7 +272,7 @@ pub fn train_network(
     }
 
     println!("saving model...");
-    network.save("./parameters-32.json");
+    network.save("./parameters-32.json", false);
     println!("model saved!");
 }
 

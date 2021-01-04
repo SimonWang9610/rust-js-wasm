@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const dot = require('dot');
 const fs = require('fs');
+const { EEXIST } = require('constants');
 
 const app = express();
 
@@ -30,6 +31,21 @@ app.get('/', async (req, res, next) => {
 	} catch (err) {
 		res.end('Internal serve error');
 	}
+});
+
+app.get('/parameters', async (req, res, next) => {
+	fs.readFile('./www/static/parameters-32-6.json', "utf-8", (err, jsonString) => {
+		if (err) {
+			throw err;
+		}
+
+		try {
+			let layers = JSON.parse(jsonString);
+			console.log("layers: " + layers);
+		} catch (error) {
+			console.log("Error: " + error);
+		}
+	});
 });
 
 function readFile(path) {
