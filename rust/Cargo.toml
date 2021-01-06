@@ -1,2 +1,2 @@
 [workspace]
-members = ["neural", "utils", "network"]
+members = ["neural", "utils", "network", "quantization", "test_quan"]

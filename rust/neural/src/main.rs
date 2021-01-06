@@ -1,9 +1,11 @@
 extern crate network;
 extern crate utils;
 
+
 use network::{classification, evaluate, load_model, train_network};
 use utils::dataset::mnist::load_mnist;
 use utils::utils::transform;
+
 
 use std::path::Path;
 use std::time::Instant;
@@ -50,18 +52,7 @@ fn main() {
     });
     
 
-    /* let predictions = trained_network.predict(x_test.reversed_axes());
-    let test_correct = evaluate(&predictions, &y_test);
-    println!("Test-Acc {}", test_correct / y_test.shape()[0] as f64); */
 
-    /* println!(
-        "bias {}",
-        &network.back().unwrap().bias.borrow().mean().unwrap()
-    );
-    println!(
-        "weights {}",
-        &network.back().unwrap().weights.borrow().mean().unwrap()
-    ); */
 }
 
 // Normalize: x_train = x_train / 255
