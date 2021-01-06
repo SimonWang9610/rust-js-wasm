@@ -1,5 +1,5 @@
 extern crate image;
-use ndarray::{Array, Array2, Ix2};
+use ndarray::{Array, Array2, Ix2, Axis};
 use rand::prelude::*;
 use std::f32::consts::E;
 use std::path::Path;
@@ -38,10 +38,58 @@ pub fn compute_loss(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
         * average
 }
 
+pub fn loss(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
+    let average = -1. / labels.shape()[1] as f32;
+
+    output
+        .into_iter()
+        .zip(labels.iter())
+        .fold(0., |acc, (o, l)| acc + l * o.log(E))
+        * average
+}
+
 // transform image to specific shape
 pub fn transform(path: &str) -> Array2<f32> {
     let img = image::open(Path::new(path)).unwrap().into_luma();
     let pixels: Vec<f32> = img.into_iter().map(|x| *x as f32 / 255.).collect();
 
     Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
+}
+
+pub fn evaluate(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
+    // labels [samples, 10]
+    
+    let predictions = output.map_axis(Axis(1), |row| {
+        let mut max = (0, 0.);
+        for (i, ele) in row.iter().enumerate() {
+            if *ele > max.1 {
+                max = (i, *ele);
+            }
+        }
+        max.0 as f32
+    });
+
+    let labels = labels.map_axis(Axis(1), |row| {
+        let mut max = (0, 0.);
+        for (i, ele) in row.iter().enumerate() {
+            if *ele > max.1 {
+                max = (i, *ele);
+            }
+        }
+        max.0 as f32
+    });
+
+    predictions
+        .into_iter()
+        .zip(labels.into_iter())
+        .fold(
+            0.,
+            |acc, (prediction, label)| {
+                if prediction == label {
+                    acc + 1.
+                } else {
+                    acc
+                }
+            },
+        )
 }
