@@ -8,6 +8,8 @@ extern crate wasm_bindgen;
 pub mod utils;
 use utils::{evaluate, relu, softmax, one_hot, dequantize};
 
+pub mod quantization;
+
 use cfg_if::cfg_if;
 use js_sys::Array;
 use ndarray::Array2;

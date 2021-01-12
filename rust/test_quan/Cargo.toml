@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies]
 quantization = {path = "../quantization"}
+utils = {path = "../utils" }
+ndarray = "0.14"
+ndarray-stats = "0.4.0"

@@ -6,9 +6,17 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
 
-pub fn load_mnist<P: AsRef<Path>>(
-    path: Vec<P>,
-) -> ((Array2<f32>, Array2<f32>), (Array2<f32>, Array2<f32>)) {
+
+
+pub fn load_mnist() -> ((Array2<f32>, Array2<f32>), (Array2<f32>, Array2<f32>)) {
+
+    let path: Vec<&Path> = vec![
+        "../mnist/train-images.idx3-ubyte".as_ref(),
+        "../mnist/train-labels.idx1-ubyte".as_ref(),
+        "../mnist/t10k-images.idx3-ubyte".as_ref(),
+        "../mnist/t10k-labels.idx1-ubyte".as_ref(),
+    ];
+
     let mut path_iter = path.into_iter();
     let (train_x, num_image_train): (Vec<f32>, usize) = load_images(path_iter.next().unwrap());
     let (train_y, num_label_train): (Vec<f32>, usize) = load_labels(path_iter.next().unwrap());

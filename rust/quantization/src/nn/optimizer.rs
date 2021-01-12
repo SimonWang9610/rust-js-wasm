@@ -1,7 +1,7 @@
 // use super::module::ModuleT;
-use super::array::Matrix;
-use super::variables::{VarStore, Variables};
-use super::quantize::{Quantization, Dequantization};
+use super::array::{Matrix};
+use super::variables::{VarStore, Variables, FloatVariables, IntVariables};
+use super::quantize::{Quantization};
 
 
 #[derive(Debug)]
@@ -17,86 +17,62 @@ impl Optimizer {
         }
     }
 
-    pub fn backward_step(&self, diff: Matrix, vs: &mut VarStore) {
+    pub fn decay(&mut self, k: i32) {
+        self.learning *= (0.95 as f32).powi(k);
+    }
+
+    pub fn backward_step(&self, diff: Matrix, vs: &mut VarStore, quantized: bool) {
         let outputs = vs.layer_outputs.borrow().clone();
         vs.layer_outputs.borrow_mut().clear();
 
         let mut variables = vs.layer_variables.borrow_mut();
         outputs.into_iter().enumerate().rev().fold(diff, |diff, (i, input)| {
-            self.backward(diff, input, variables.get_mut(&i).unwrap())
+            self.backward(diff, input, variables.get_mut(&i).unwrap(), quantized)
         });
     }
 
-    fn backward(&self, diff: Matrix, input: Matrix, var: &mut Variables) -> Matrix {
+    fn backward(&self, diff: Matrix, input: Matrix, var: &mut Variables, quantized: bool) -> Matrix {
         // diff [neurons, sample]
         // input [prev, sample]
 
-        let dZ = var.weights.t().dequantize().matmul(&diff).multiply(input.derivate()); // [prev, sample]
-        let dW = diff.matmul(&input.t()); // [neurons, prev]
+        let variables_float = var.borrow_float_mut().unwrap();
 
+        let dZ = variables_float.weights.t().dot(&diff).multiply(input.derivate_n(0.)); // [prev, sample]
+
+        let dW = diff.dot(&input.t()).divide(input.col); // [neurons, prev]
+
+        // calculate new weights and bias
+        // ws = Weight - dW * alpha / samples
+        // bs = bias - dZ * alpha / samples
+        let ws = variables_float.weights.subtract(dW.mul(self.learning));
+        let bs = variables_float.bias.subtract(diff.mul(self.learning).sum_axis(1));
+
+        let v_int = if quantized {
+            let wq = ws.quantize();
+            let factor = wq.factor * input.factor.unwrap();
+
+            Some(
+                IntVariables {
+                    wq,
+                    bq: bs.as_i32(factor)
+                }
+            )
+        } else {
+            None
+        };
+        
+        let v_float = FloatVariables {
+            weights: ws,
+            bias: bs,
+        };
 
         *var = Variables {
-            weights: (var.weights.dequantize() - dW.mul(self.learning)).quantize(),
-            bias: var.bias.clone() - diff.mul(self.learning).sum_axis(1),
+            variables_float: Some(v_float),
+            variables_int: v_int,
+            max: var.max,
+            min: var.min,
         };
 
         dZ
     }
 }
-
-// pub trait Optimization {
-//     fn optimize(&self, vs: &mut VarStore, diff: Matrix, input: Matrix, index: usize) -> Matrix;
-// }
-
-// pub trait Backward {
-//     fn backward(&self, diff: Matrix, input: Matrix, var: &mut Variables) -> Matrix;
-// }
-
-
-// #[derive(Debug)]
-// pub enum OptimizerConfig {
-//     SGD(SGD),
-//     ADAM(Adam),
-//     RMS(RmsProp),
-// }
-
-// impl Optimization for OptimizerConfig {
-//     fn optimize(&self, vs: &mut VarStore, diff: Matrix, input: Matrix, index: usize) -> Matrix {
-        
-//         match self {
-//             Self::SGD(s) => s.backward(diff, input, vs.get_config_mut(index)),
-
-//         }
-//     }
-// }
-
-// #[derive(Debug)]
-// pub struct Momentum;
-
-// #[derive(Debug)]
-// pub struct Adam;
-
-// #[derive(Debug)]
-// pub struct RmsProp;
-
-
-// #[derive(Debug)]
-// pub struct SGD {
-//     pub lr: f32,
-// }
-
-// impl Backward for SGD {
-//     fn backward(&self, diff: Matrix, input: Matrix, var: &mut Variables) -> Matrix {
-
-//         let dA = var.weights.dequantize().matmul(&diff).multiply(&input.derivate());
-
-//         let dW = diff.matmul(&input);
-
-//         *var = Variables {
-//             weights: (var.weights.dequantize() - dW.mul(self.lr)).quantize(),
-//             bias: var.bias - diff.mul(self.lr).sum_axis(1),
-//         };
-
-//         dA
-//     }
-// }

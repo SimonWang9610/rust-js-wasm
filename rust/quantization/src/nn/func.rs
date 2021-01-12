@@ -1,16 +1,15 @@
-use super::array::{QuantizedMatrix};
-use super::module::{Module, ModuleT};
+use super::array::{Uint8Matrix};
 use super::variables::VarStore;
 
 
 pub struct Func<'a> {
-    f: Box<dyn 'a + Fn(&QuantizedMatrix, &VarStore) -> QuantizedMatrix>,
+    f: Box<dyn 'a + Fn(&Uint8Matrix, &VarStore) -> Uint8Matrix>,
 }
 
 
 pub fn func_t<'a, F>(f: F) -> Func<'a>
 where
-    F: 'a + Fn(&QuantizedMatrix, &VarStore) -> QuantizedMatrix,
+    F: 'a + Fn(&Uint8Matrix, &VarStore) -> Uint8Matrix,
 {
     Func {
         f: Box::new(f)
@@ -23,8 +22,8 @@ impl<'a> std::fmt::Debug for Func<'a> {
     }
 }
 
-impl<'a> Module for Func<'a> {
-    fn forward(&self, input: &QuantizedMatrix, vs: &VarStore) -> QuantizedMatrix {
-        (*self.f)(input, vs)
-    }
-}
+// impl<'a> Module for Func<'a> {
+//     fn forward(&self, input: &Uint8Matrix, vs: &VarStore) -> Uint8Matrix {
+//         (*self.f)(input, vs)
+//     }
+// }

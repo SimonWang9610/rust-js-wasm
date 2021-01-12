@@ -25,14 +25,9 @@ macro_rules! timing {
 }
 
 fn main() {
-    let paths: Vec<&Path> = vec![
-        "./mnist/train-images.idx3-ubyte".as_ref(),
-        "./mnist/train-labels.idx1-ubyte".as_ref(),
-        "./mnist/t10k-images.idx3-ubyte".as_ref(),
-        "./mnist/t10k-labels.idx1-ubyte".as_ref(),
-    ];
+
     let config: Vec<usize> = vec![784, 500, 350, 200, 100, 50, 10];
-    let ((x_train, y_train), (x_test, y_test)) = load_mnist(paths); // [sample, 784] [sample, 10]
+    let ((x_train, y_train), (x_test, y_test)) = load_mnist(); // [sample, 784] [sample, 10]
 
     // train_network(x_train, y_train, x_test, y_test, config, 50, 128, 1.25);
 

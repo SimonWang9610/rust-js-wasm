@@ -1,13 +1,9 @@
-use ndarray::Array2;
-
+use super::array::{Matrix, Uint8Matrix};
 
 pub trait Quantization<T> {
     fn quantize(&self) -> T;
 }
 
-pub trait Dequantization<T, U> {
-    
-    fn dequantize_matmul(&self, qm: &T) -> U;
-    
-    fn dequantize(&self) -> U;
+pub trait Dequantization {
+    fn dequantize(&self) -> Matrix;
 }

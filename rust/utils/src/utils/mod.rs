@@ -4,6 +4,7 @@ use rand::prelude::*;
 use std::f32::consts::E;
 use std::path::Path;
 
+
 pub fn one_hot(labels: Array2<f32>, cols: usize) -> Array2<f32> {
     let rows = labels.shape()[0];
     let mut data = vec![];
@@ -56,10 +57,11 @@ pub fn transform(path: &str) -> Array2<f32> {
     Array::from_shape_vec(Ix2(1, 28 * 28), pixels).unwrap()
 }
 
-pub fn evaluate(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
-    // labels [samples, 10]
+pub fn evaluate(output: &Array2<f32>, labels: &Array2<f32>, axis: usize) -> f32 {
+    // axis = 0: labels [10, sample]
+    // axis = 1: labels [sample, 10]
     
-    let predictions = output.map_axis(Axis(1), |row| {
+    let predictions = output.map_axis(Axis(axis), |row| {
         let mut max = (0, 0.);
         for (i, ele) in row.iter().enumerate() {
             if *ele > max.1 {
@@ -69,7 +71,7 @@ pub fn evaluate(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
         max.0 as f32
     });
 
-    let labels = labels.map_axis(Axis(1), |row| {
+    let labels = labels.map_axis(Axis(axis), |row| {
         let mut max = (0, 0.);
         for (i, ele) in row.iter().enumerate() {
             if *ele > max.1 {
@@ -92,4 +94,44 @@ pub fn evaluate(output: &Array2<f32>, labels: &Array2<f32>) -> f32 {
                 }
             },
         )
+}
+
+
+pub fn _quantize(arr: &Array2<i32>) -> (Array2<u8>, f32, u8) {
+    
+    let (min, max) = arr.iter().fold((0, 0), |acc, ele| {
+
+        if &acc.0 > ele {
+            (*ele, acc. 1)
+        } else if &acc.1 < ele {
+            (acc.0, *ele)
+        } else {
+            acc
+        }
+    });
+
+    let factor = (max as f32 - min as f32) / 255.;
+    let zero = (255. - max as f32 / factor).round() as u8;
+
+    (
+        arr.map(|ele| {
+            (*ele as f32 / factor).round() as u8 + zero
+        }),
+        factor,
+        zero,
+    )
+}
+
+pub fn min_max(v: &Vec<f32>) -> (f32, f32) {
+    
+    v.iter().fold((0., 0.), |acc, ele| {
+
+        if &acc.0 > ele {
+            (*ele, acc. 1)
+        } else if &acc.1 < ele {
+            (acc.0, *ele)
+        } else {
+            acc
+        }
+    })
 }

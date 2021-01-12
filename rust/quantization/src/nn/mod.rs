@@ -13,4 +13,4 @@ pub mod variables;
 
 pub mod quantize;
 
-pub mod func;
+// pub mod func;
